@@ -136,6 +136,9 @@ plt.title(title)
 # Generate a unique file name for the plot
 plot_path = os.path.join("./results", title)
 
+if not os.path.exists(plot_path):
+    os.makedirs(plot_path)
+
 # Save the plot
 plt.savefig(plot_path, format='png', dpi=300, bbox_inches='tight')
 plt.close()  # Close the plot to free up memory
