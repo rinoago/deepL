@@ -6,6 +6,6 @@ transformers
 datasets
 #json
 jsonlines
-sklearn
+#sklearn
 tqdm
-os
+#os
