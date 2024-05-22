@@ -6,11 +6,13 @@ import json
 import torch.nn as nn
 import os
 
-from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import f1_score, roc_auc_score, confusion_matrix
 import torch.nn.functional as F
 import numpy as np
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+
+from tqdm import tqdm
 
 # Set environment variable to avoid OpenBLAS warnings
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
@@ -18,8 +20,9 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 # Set CUDA device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+dataset_name = 'test.jsonl'
 # Load dataset (replace 'dataset_name' with your actual dataset)
-dataset = load_dataset('json', data_files='./data/paraphrased_data.jsonl')
+dataset = load_dataset('json', data_files=f'./data/{dataset_name}')
 
 # Define the tokenizer and model
 model_name = "bert-base-uncased"
@@ -49,15 +52,15 @@ train_dataset = train_test_split['train']
 test_dataset = train_test_split['test']
 
 # Prepare DataLoader
-batch_size = 16
+batch_size = 4 #16
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 eval_dataloader = DataLoader(test_dataset, batch_size=batch_size)
 
 
 # Set up the optimizer and scheduler
-optimizer = AdamW(model.parameters(), lr=5e-5)
-num_epochs = 50
+optimizer = AdamW(model.parameters(), lr=1e-4) #lr=5e-5
+num_epochs = 5
 num_training_steps = num_epochs * len(train_dataloader)
 lr_scheduler = get_scheduler(
     name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
@@ -134,18 +137,19 @@ plt.ylabel('t-SNE Component 2')
 title = f'3_paraphrased.png'
 plt.title(title)
 # Generate a unique file name for the plot
-plot_path = os.path.join("./results", title)
-
-if not os.path.exists(plot_path):
-    os.makedirs(plot_path)
+# plot_path = os.path.join("./results", title)
+# if not os.path.exists(plot_path):
+#     os.makedirs(plot_path)
 
 # Save the plot
-plt.savefig(plot_path, format='png', dpi=300, bbox_inches='tight')
+plt.savefig(f'./results/tsne_{dataset_name}.png', dpi=300, bbox_inches='tight')
 plt.close()  # Close the plot to free up memory
 
 # Calculate metrics
 accuracy = (np.array(all_predictions) == np.array(all_labels)).mean()
-f1 = f1_score(all_labels, all_predictions, average='weighted')
+f1 = f1_score(all_labels, all_predictions, average=None)
+conf_matrix = confusion_matrix(all_labels, all_predictions)
 
 print(f"Accuracy: {accuracy:.4f}")
-print(f"F1 Score: {f1:.4f}")
+print(f"F1 Score: {f1}")
+print(f"Confusion Matrix:\n{conf_matrix}")
