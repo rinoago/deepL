@@ -6,6 +6,7 @@ transformers
 datasets
 #json
 jsonlines
-#sklearn
+scikit-learn
 tqdm
+tensorboard
 #os

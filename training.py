@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import numpy as np
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
 
 from tqdm import tqdm
 
@@ -21,6 +22,7 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 dataset_name = 'test.jsonl'
+writer = SummaryWriter(f'runs/{dataset_name}')
 # Load dataset (replace 'dataset_name' with your actual dataset)
 dataset = load_dataset('json', data_files=f'./data/{dataset_name}')
 
@@ -73,6 +75,7 @@ model.to(device)
 # Training loop
 for epoch in range(num_epochs):
     model.train()
+    losses = []
     for batch in train_dataloader:
         
         inputs_ids = batch['input_ids'].to(device)
@@ -83,12 +86,15 @@ for epoch in range(num_epochs):
         outputs = model(input_ids=inputs_ids, labels=labels, attention_mask = attention)
         loss = outputs.loss
         loss.backward()
+        losses.append(loss.item())
         
         optimizer.step()
         lr_scheduler.step()
         optimizer.zero_grad()
     
     print(f"Epoch {epoch + 1} completed")
+    losses = torch.tensor(losses)
+    writer.add_scalar('Loss/validation', torch.mean(losses), epoch)
 
 model.eval()
 all_predictions = []
@@ -153,3 +159,4 @@ conf_matrix = confusion_matrix(all_labels, all_predictions)
 print(f"Accuracy: {accuracy:.4f}")
 print(f"F1 Score: {f1}")
 print(f"Confusion Matrix:\n{conf_matrix}")
+
