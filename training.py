@@ -162,3 +162,7 @@ print(f"Accuracy: {accuracy:.4f}")
 print(f"F1 Score: {f1}")
 print(f"Confusion Matrix:\n{conf_matrix}")
 
+# Save the model
+model_path = f'./models/{dataset_name}.pt'
+torch.save(model.state_dict(), model_path)
+print(f"Model saved at {model_path}")

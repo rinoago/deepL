@@ -21,7 +21,7 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 # Set CUDA device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-dataset_name = 'augmented_dataset_small'
+dataset_name = 'augmented_data_small'
 writer = SummaryWriter(f'runs/{dataset_name}')
 # Load dataset (replace 'dataset_name' with your actual dataset)
 dataset_tr = load_dataset('json', data_files=f'./data/{dataset_name}_train.jsonl')
@@ -157,3 +157,7 @@ print(f"Accuracy: {accuracy:.4f}")
 print(f"F1 Score: {f1}")
 print(f"Confusion Matrix:\n{conf_matrix}")
 
+# Save the model
+model_path = f'./models/{dataset_name}.pt'
+torch.save(model.state_dict(), model_path)
+print(f"Model saved at {model_path}")
