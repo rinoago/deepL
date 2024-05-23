@@ -25,6 +25,8 @@ dataset_name = 'test.jsonl'
 writer = SummaryWriter(f'runs/{dataset_name}')
 # Load dataset (replace 'dataset_name' with your actual dataset)
 dataset = load_dataset('json', data_files=f'./data/{dataset_name}')
+dataset = dataset.filter(lambda example, idx: idx % 4 == 0, with_indices = True)
+dataset = dataset.shuffle(seed=42)
 
 # Define the tokenizer and model
 model_name = "bert-base-uncased"
@@ -49,20 +51,20 @@ encoded_dataset = encoded_dataset.rename_column("label", "labels")
 encoded_dataset.set_format(type='torch', columns=['input_ids', 'labels', 'attention_mask'])
 
 # Split the dataset into training and testing sets
-train_test_split = encoded_dataset['train'].train_test_split(test_size=0.2)
+train_test_split = encoded_dataset['train'].train_test_split(test_size=0.3)
 train_dataset = train_test_split['train']
 test_dataset = train_test_split['test']
 
 # Prepare DataLoader
-batch_size = 4 #16
+batch_size = 64 #16
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 eval_dataloader = DataLoader(test_dataset, batch_size=batch_size)
 
 
 # Set up the optimizer and scheduler
-optimizer = AdamW(model.parameters(), lr=1e-4) #lr=5e-5
-num_epochs = 5
+optimizer = AdamW(model.parameters(), lr=1e-5) #lr=5e-5
+num_epochs = 60
 num_training_steps = num_epochs * len(train_dataloader)
 lr_scheduler = get_scheduler(
     name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
@@ -73,10 +75,11 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 model.to(device)
 
 # Training loop
-for epoch in range(num_epochs):
+for epoch in tqdm(range(num_epochs)):
     model.train()
     losses = []
-    for batch in train_dataloader:
+    for batch in tqdm(train_dataloader):
+        optimizer.zero_grad()
         
         inputs_ids = batch['input_ids'].to(device)
         labels = batch['labels'].to(device)
@@ -90,7 +93,6 @@ for epoch in range(num_epochs):
         
         optimizer.step()
         lr_scheduler.step()
-        optimizer.zero_grad()
     
     print(f"Epoch {epoch + 1} completed")
     losses = torch.tensor(losses)

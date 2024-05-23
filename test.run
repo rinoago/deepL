@@ -1,18 +1,15 @@
 #!/bin/bash -l
-#SBATCH --chdir /home/wolski/DL
+#SBATCH --chdir /home/wolski/deepL
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 1
-#SBATCH --mem 4G
-#SBATCH --time 00:05:00
+#SBATCH --mem 40G
+#SBATCH --time 05:00:00
 #SBATCH --gres gpu:1
 #SBATCH --account cs-552
 #SBATCH --qos cs-552
 #SBATCH --reservation cs-552
 
-# source /home/hmasson/anaconda3/bin/activate projet
 
-# python /home/hmasson/deepL/training.py 
+#source /home/wolski/anaconda3/bin/activate projet
 
-echo "Hello World"
-spleep 10
-date
+python /home/wolski/deepL/training.py
